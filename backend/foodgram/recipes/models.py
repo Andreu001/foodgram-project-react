@@ -102,29 +102,25 @@ class Follow(models.Model):
     """ Модель подписок. """
     user = models.ForeignKey(
         User,
+        related_name='subscriber',
+        verbose_name="Подписчик",
         on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписчик',
     )
     author = models.ForeignKey(
         User,
+        related_name='subscribing',
+        verbose_name="Автор",
         on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Автор рецепта',
     )
 
     class Meta:
+        ordering = ['-id']
         constraints = [
-            UniqueConstraint(
-                fields=['user', 'author'],
-                name='user_author_unique'
-            )
+            UniqueConstraint(fields=['user', 'author'],
+                             name='unique_subscription')
         ]
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-
-    def __str__(self):
-        return f'{self.user} подписался на {self.author}'
 
 
 class FavoritesList(models.Model):

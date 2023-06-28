@@ -11,7 +11,7 @@ class IngredientsRecipeLine(admin.TabularInline):
 
 @admin.register(Ingredients)
 class IngredientAdmin(admin.ModelAdmin):
-    """ Админ панель управление ингридиентами """
+    """ Управление ингридиентами """
     list_display = ('name', 'units_of_measurement')
     search_fields = ('name', )
     list_filter = ('name', )
@@ -20,12 +20,13 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
+    """Управление тегами"""
     list_display = ('name', 'color', 'slug',)
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    """ Админ панель управление рецептами """
+    """ Управление рецептами """
     list_display = ('name', 'author', 'favorites')
     search_fields = ('author', 'name')
     list_filter = ('tags', )
@@ -43,7 +44,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(FavoritesList)
 class FavoriteAdmin(admin.ModelAdmin):
-    """ Админ панель управление подписками """
+    """ Управление подписками """
     list_display = ('user', 'recipe')
     list_filter = ('user', 'recipe')
     search_fields = ('user', 'recipe')

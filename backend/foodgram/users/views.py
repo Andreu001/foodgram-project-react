@@ -1,22 +1,21 @@
-from api.pagination import CustomPagination
-from api.serializers import CustomUserSerializer, SubscribeSerializer
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from recipes.models import Follow
 
-from .models import Subscribe
+from users.models import User
+from api.pagination import CatsPagination
+from api.serializers import SubscribeSerializer, CustomUserSerializer
 
-User = get_user_model()
 
-
-class CustomUserViewSet(UserViewSet):
+class UsersViewSet(UserViewSet):
+    """ Отображение подписок """
+    pagination_class = CatsPagination
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    pagination_class = CustomPagination
 
     @action(
         detail=True,
@@ -33,11 +32,11 @@ class CustomUserViewSet(UserViewSet):
                                              data=request.data,
                                              context={"request": request})
             serializer.is_valid(raise_exception=True)
-            Subscribe.objects.create(user=user, author=author)
+            Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            subscription = get_object_or_404(Subscribe,
+            subscription = get_object_or_404(Follow,
                                              user=user,
                                              author=author)
             subscription.delete()

@@ -1,71 +1,25 @@
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-from djoser.views import UserViewSet
 from django.db.models import Sum
-from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
-from recipes.models import (Ingredients, Recipe, FavoritesList, Follow,
+
+from recipes.models import (Ingredients, Recipe, FavoritesList,
                             ShoppingList, IngredientInRecipe, Tag
                             )
-from .permissions import IsAdminOrReadOnly
-from users.models import User
+
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .pagination import CatsPagination
 from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
-                          ShoppingListSerializer, TagSerializer,
-                          FollowListSerializer, FollowSerializer)
+                          ShoppingListSerializer, TagSerializer
+                          )
 from .filters import RecipeFilter, IngredientFilter
-
-
-class UsersViewSet(UserViewSet):
-    """ Отображение подписок/подписться/отписаться """
-    pagination_class = CatsPagination
-
-    @action(['get'], detail=False, permission_classes=[IsAuthenticated])
-    def me(self, request, *args, **kwargs):
-        self.get_object = self.get_instance
-        return self.retrieve(request, *args, **kwargs)
-
-    @action(methods=['get'], detail=False)
-    def subscriptions(self, request):
-        """ Отоброжение подписок """
-        subscriptions_list = self.paginate_queryset(
-            User.objects.filter(following__user=request.user)
-        )
-        serializer = FollowListSerializer(
-            subscriptions_list, many=True, context={
-                'request': request
-            }
-        )
-        return self.get_paginated_response(serializer.data)
-
-    @action(methods=['post', 'delete'], detail=True)
-    def subscribe(self, request, id):
-        """ Подписаться/отписаться """
-        if request.method == 'POST':
-            serializer = FollowSerializer(
-                data={
-                    'user': request.user.id,
-                    'author': get_object_or_404(User, id=id).id
-                },
-                context={'request': request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        subscription = get_object_or_404(
-            Follow,
-            author=get_object_or_404(User, id=id),
-            user=request.user
-        )
-        self.perform_destroy(subscription)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -75,20 +29,18 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Получить список всех категорий. Права доступа: Доступно без токена
-    """
+    """Получить список всех категорий"""
     queryset = Ingredients.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (IngredientFilter)
     filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """ Операции с рецептами: добавление/изменение/удаление/просмотр. """
+    """ Операции с рецептами """
     queryset = Recipe.objects.all()
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly, )
     pagination_class = CatsPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
