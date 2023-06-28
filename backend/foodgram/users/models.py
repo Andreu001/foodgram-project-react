@@ -4,7 +4,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
 class User(AbstractUser):
-    """ Модель пользователя. """
+    """Модель пользователя"""
     first_name = models.CharField(
         verbose_name='Имя',
         max_length=150,

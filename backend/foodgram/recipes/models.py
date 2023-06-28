@@ -99,7 +99,7 @@ class Recipe(models.Model):
 
 
 class Follow(models.Model):
-    """ Модель подписок. """
+    """4.  Модель подписок. """
     user = models.ForeignKey(
         User,
         related_name='subscriber',
