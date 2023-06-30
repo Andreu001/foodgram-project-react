@@ -1,10 +1,8 @@
-# import os
 import csv
 import logging.config
 
 from recipes.models import Ingredients
 from django.core.management import BaseCommand
-# from foodgram.settings import BASE_DIR
 
 
 class Command(BaseCommand):
@@ -14,11 +12,12 @@ class Command(BaseCommand):
         with open('data/ingredients.csv',
                   encoding='utf-8') as f:
             reader = csv.reader(f)
+            ingredients = []
             for row in reader:
-                try:
+                ingredients.append(
                     Ingredients(name=row[0],
-                                units_of_measurement=row[1]).save()
-                except Exception as exc:
-                    logging.error(exc)
+                                measurement_unit=row[1]).save()
+                                )
+                Ingredients.objects.bulk_create(ingredients)
 
         return logging.info('Загружено')

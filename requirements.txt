@@ -12,3 +12,4 @@ PyJWT==2.1.0
 requests==2.26.0
 djoser==2.1.0
 drf-extra-fields==3.4.0
+pyflakes==2.5.0

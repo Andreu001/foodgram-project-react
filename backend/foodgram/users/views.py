@@ -8,7 +8,7 @@ from recipes.models import Follow
 
 from users.models import User
 from api.pagination import CatsPagination
-from api.serializers import SubscribeSerializer, CustomUserSerializer
+from api.serializers import FollowSerializer, CustomUserSerializer
 
 
 class UsersViewSet(UserViewSet):
@@ -28,9 +28,9 @@ class UsersViewSet(UserViewSet):
         author = get_object_or_404(User, id=author_id)
 
         if request.method == 'POST':
-            serializer = SubscribeSerializer(author,
-                                             data=request.data,
-                                             context={"request": request})
+            serializer = FollowSerializer(author,
+                                          data=request.data,
+                                          context={"request": request})
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -50,7 +50,7 @@ class UsersViewSet(UserViewSet):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = SubscribeSerializer(pages,
-                                         many=True,
-                                         context={'request': request})
+        serializer = FollowSerializer(pages,
+                                      many=True,
+                                      context={'request': request})
         return self.get_paginated_response(serializer.data)

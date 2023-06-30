@@ -10,7 +10,7 @@ class IngredientFilter(filters.FilterSet):
 
     class Meta:
         model = Ingredients
-        fields = '__all__'
+        fields = ('name', 'measurement_unit')
 
 
 class RecipeFilter(filters.FilterSet):

@@ -1,25 +1,25 @@
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
 from django.db.models import Sum
 from django.http import HttpResponse
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
-from recipes.models import (Ingredients, Recipe, FavoritesList,
-                            ShoppingList, IngredientInRecipe, Tag
+from recipes.models import (FavoritesList, Ingredients, IngredientInRecipe,
+                            Recipe, ShoppingList, Tag
                             )
 
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .pagination import CatsPagination
 from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
                           ShoppingListSerializer, TagSerializer
                           )
-from .filters import RecipeFilter, IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -63,11 +63,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def delete_method_for_actions(request, pk, model):
         """ Метод удаления """
         obj = model.objects.filter(user=request.user, recipe__id=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'errors': 'Рецепт уже удален!'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):

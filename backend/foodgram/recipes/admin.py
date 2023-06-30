@@ -12,7 +12,7 @@ class IngredientsRecipeLine(admin.TabularInline):
 @admin.register(Ingredients)
 class IngredientAdmin(admin.ModelAdmin):
     """ Управление ингридиентами """
-    list_display = ('name', 'units_of_measurement')
+    list_display = ('name', 'measurement_unit')
     search_fields = ('name', )
     list_filter = ('name', )
     empty_value_display = '-пусто-'
