@@ -8,7 +8,6 @@ from rest_framework.fields import SerializerMethodField
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import PrimaryKeyRelatedField
 
-# from settings import RECIPES_LIMIT
 from recipes.models import (FavoritesList, Follow, Ingredients,
                             IngredientInRecipe, Recipe, Tag, ShoppingList)
 from users.models import User
@@ -212,7 +211,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         recipe = data['recipe']
-        if recipe in request.user.recipes.all().exists():
+        if recipe in request.user.recipes.all():
             raise ValidationError({
                 'errors': 'Уже есть в избранном.'
             })
@@ -242,14 +241,10 @@ class FollowListSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, author):
         queryset = self.context.get('request')
-        recipes_limit = queryset.query_params.get('recipes_limit')
-        if not recipes_limit:
-            return RecipeShortInfo(
-                Recipe.objects.filter(author=author),
-                many=True, context={'request': queryset}
-            ).data
+        recipes_limit = queryset.query_params.get(
+            'recipes_limit', settings.RECIPES_LIMIT)
         return RecipeShortInfo(
-            Recipe.objects.filter(author=author)[settings.RECIPES_LIMIT],
+            Recipe.objects.filter(author=author)[recipes_limit],
             many=True,
             context={'request': queryset}
         ).data
