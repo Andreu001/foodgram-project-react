@@ -50,3 +50,4 @@ toml==0.10.2
 typing-extensions==4.6.3
 uritemplate==4.1.1
 urllib3==1.26.16
+psycopg2-binary==2.9.3

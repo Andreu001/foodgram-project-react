@@ -2,6 +2,8 @@ from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Sum
 from django.http import HttpResponse
+from djoser.views import UserViewSet
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -9,8 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
+from users.models import User
 from recipes.models import (FavoritesList, Ingredients, IngredientInRecipe,
-                            Recipe, ShoppingList, Tag
+                            Recipe, ShoppingList, Tag, Follow
                             )
 
 from .filters import IngredientFilter, RecipeFilter
@@ -18,7 +21,9 @@ from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .pagination import CatsPagination
 from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
-                          ShoppingListSerializer, TagSerializer
+                          ShoppingListSerializer, TagSerializer,
+                          FollowSerializer, CustomUserSerializer,
+                          FollowListSerializer
                           )
 
 
@@ -33,8 +38,8 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (IngredientFilter)
-    filterset_class = IngredientFilter
+    filter_backends = (IngredientFilter, )
+    search_fields = ('name', )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -113,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             f'Дата: {today:%Y-%m-%d}\n\n'
         )
         shopping_list += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
+            f'- {ingredient["ingredient__name"]}'
             f'({ingredient["ingredient__measurement_unit"]})'
             f' - {ingredient["amount"]}'
             for ingredient in ingredients
@@ -124,3 +129,46 @@ class RecipeViewSet(viewsets.ModelViewSet):
         response = HttpResponse(shopping_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
+
+
+class UsersViewSet(UserViewSet):
+    """ Отображение подписок """
+    pagination_class = CatsPagination
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+
+    @action(
+        url_name='subscribe',
+        url_path='subscribe',
+        detail=True,
+        methods=['post', 'delete'],
+    )
+    def subscribe(self, request, id):
+        author = get_object_or_404(User, id=id)
+        data = {'user': request.user.pk, 'author': author.pk}
+        if request.method == 'POST':
+            serializer = FollowSerializer(data=data,
+                                          context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.create(user_id=request.user.pk, author_id=author.pk)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            subscription = get_object_or_404(Follow,
+                                             user_id=request.user.pk,
+                                             author_id=author.pk)
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(methods=['get'], detail=False)
+    def subscriptions(self, request):
+        """ Отоброжение подписок """
+        subscriptions_list = self.paginate_queryset(
+            User.objects.filter(following__user=request.user)
+        )
+        serializer = FollowListSerializer(
+            subscriptions_list, many=True, context={
+                'request': request
+            }
+        )
+        return self.get_paginated_response(serializer.data)

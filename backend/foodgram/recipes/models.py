@@ -122,6 +122,9 @@ class Follow(models.Model):
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
 
+    def __str__(self):
+        return f'{self.user} подписался на {self.author}'
+
 
 class FavoritesList(models.Model):
     '''6.	Список избранного'''
@@ -173,6 +176,9 @@ class ShoppingList(models.Model):
         ]
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
+
+    def __str__(self):
+        return f'{self.user} добавил "{self.recipe}" в Список покупок'
 
 
 class IngredientInRecipe(models.Model):

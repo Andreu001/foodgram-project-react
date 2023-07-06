@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -170,7 +169,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeShortInfo(serializers.ModelSerializer):
     """ Сериализатор отображения избранного """
-    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -213,7 +211,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         recipe = data['recipe']
         if recipe in request.user.recipes.all():
             raise ValidationError({
-                'errors': 'Уже есть в избранном.'
+                'errors': 'Нельзя добавить в избранное свой рецепт'
             })
         return data
 
@@ -242,9 +240,12 @@ class FollowListSerializer(serializers.ModelSerializer):
     def get_recipes(self, author):
         queryset = self.context.get('request')
         recipes_limit = queryset.query_params.get(
-            'recipes_limit', settings.RECIPES_LIMIT)
+            'recipes_limit')
+        recipes = Recipe.objects.filter(author=author)
+        if recipes_limit:
+            recipes = recipes[::recipes_limit]
         return RecipeShortInfo(
-            Recipe.objects.filter(author=author)[recipes_limit],
+            recipes,
             many=True,
             context={'request': queryset}
         ).data
@@ -271,12 +272,12 @@ class FollowSerializer(serializers.ModelSerializer):
                 author=data['author']
         ):
             raise ValidationError({
-                'errors': 'Вы уже подписан.'
+                'errors': 'Вы уже подписаны.'
             })
         return data
 
     def to_representation(self, instance):
         return FollowListSerializer(
-            instance.author,
+            instance.get('author'),
             context={'request': self.context.get('request')}
         ).data
