@@ -22,8 +22,7 @@ from .pagination import CatsPagination
 from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
                           ShoppingListSerializer, TagSerializer,
-                          FollowSerializer, CustomUserSerializer,
-                          FollowListSerializer
+                          FollowSerializer, CustomUserSerializer
                           )
 
 
@@ -38,16 +37,16 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredients.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (IngredientFilter, )
-    search_fields = ('name', )
+    filter_backends = (IngredientFilter,)
+    search_fields = ('name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """ Операции с рецептами """
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly, )
+    permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly,)
     pagination_class = CatsPagination
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
@@ -143,20 +142,22 @@ class UsersViewSet(UserViewSet):
         detail=True,
         methods=['post', 'delete'],
     )
-    def subscribe(self, request, id):
-        author = get_object_or_404(User, id=id)
-        data = {'user': request.user.pk, 'author': author.pk}
+    def subscribe(self, request, id=None):
+        author = get_object_or_404(User, pk=id)
+        user = request.user
         if request.method == 'POST':
-            serializer = FollowSerializer(data=data,
-                                          context={"request": request})
-            serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user_id=request.user.pk, author_id=author.pk)
+            Follow.objects.create(user=user, author=author)
+            queryset = User.objects.filter(subscribing__user=user)
+            pages = self.paginate_queryset(queryset)
+            serializer = FollowSerializer(pages,
+                                          many=True,
+                                          context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
             subscription = get_object_or_404(Follow,
-                                             user_id=request.user.pk,
-                                             author_id=author.pk)
+                                             user_id=request.user,
+                                             author_id=author)
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -164,9 +165,9 @@ class UsersViewSet(UserViewSet):
     def subscriptions(self, request):
         """ Отоброжение подписок """
         subscriptions_list = self.paginate_queryset(
-            User.objects.filter(following__user=request.user)
+            User.objects.filter(subscribing__user=request.user)
         )
-        serializer = FollowListSerializer(
+        serializer = FollowSerializer(
             subscriptions_list, many=True, context={
                 'request': request
             }
