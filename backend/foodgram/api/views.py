@@ -22,8 +22,7 @@ from .pagination import CatsPagination
 from .serializers import (CreateRecipeSerializer, FavoriteSerializer,
                           IngredientSerializer, RecipeSerializer,
                           ShoppingListSerializer, TagSerializer,
-                          FollowSerializer, CustomUserSerializer
-                          )
+                          FollowSerializer, CustomUserSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

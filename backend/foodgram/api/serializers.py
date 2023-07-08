@@ -1,9 +1,9 @@
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework import serializers
 
 from recipes.models import (FavoritesList, Follow, Ingredients,
                             IngredientInRecipe, Recipe, Tag, ShoppingList)
@@ -228,7 +228,7 @@ class FollowSerializer(CustomUserSerializer):
         model = User
         fields = CustomUserSerializer.Meta.fields + (
             'recipes', 'recipes_count'
-            )
+        )
         read_only_fields = '__all__',
 
     def get_recipes(self, obj):
