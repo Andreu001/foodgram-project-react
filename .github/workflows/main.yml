@@ -135,13 +135,13 @@ jobs:
           echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' >> .env
           echo 'DB_HOST=${{ secrets.DB_HOST}}' >> .env
           echo 'DB_PORT=${{ secrets.DB_PORT}}' >> .env
-          sudo docker -f docker-compose.production.yml pull
-          sudo docker -f docker-compose.production.yml down
-          sudo docker -f docker-compose.production.yml up -d
-          sudo docker -f docker-compose.production.yml exec backend python manage.py migrate
-          sudo docker -f docker-compose.production.yml exec backend python manage.py importcsv
-          sudo docker -f docker-compose.production.yml exec backend python manage.py collectstatic
-          sudo docker -f docker-compose.production.yml exec backend cp -r /app/collect_static/. /static_backend/static_backend/
+          sudo docker compose -f docker-compose.production.yml pull
+          sudo docker compose -f docker-compose.production.yml down
+          sudo docker compose -f docker-compose.production.yml up -d
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py importcsv
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
+          sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collect_static/. /static_backend/static_backend/
 
   send_message:
     runs-on: ubuntu-latest
