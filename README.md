@@ -15,3 +15,5 @@ Password: 090483
 Admin1
 andrey1@yandex.ru
 090483An
+
+Ограничение по фото до 1Мб
