@@ -208,7 +208,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         recipe = data['recipe']
-        if recipe in request.user.recipes.all():
+        if recipe in request.user.recipes.all().exists():
             raise ValidationError({
                 'errors': 'Уже есть в избранном.'
             })
