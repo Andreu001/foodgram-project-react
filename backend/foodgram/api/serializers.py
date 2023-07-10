@@ -207,12 +207,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        recipe = data['recipe']
-        if recipe in request.user.recipes.all():
-            raise ValidationError({
-                'errors': 'Нельзя добавить в избранное свой рецепт'
-            })
-        return data
 
     def to_representation(self, instance):
         return RecipeShortInfo(instance.recipe, context={
@@ -238,8 +232,10 @@ class FollowSerializer(CustomUserSerializer):
             return False
         limit = request.query_params.get('recipes_limit',
                                          settings.RECIPES_LIMIT)
-        recipes = obj.recipes.select_related('author').all()[:int(limit)]
-        return recipes.data
+        recipes = obj.recipes.select_related('author')
+        all()[:int(limit)]
+        serializer = RecipeShortInfo(recipes, many=True, read_only=True)
+        return serializer.data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
