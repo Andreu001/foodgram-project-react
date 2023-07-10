@@ -236,7 +236,9 @@ class FollowSerializer(CustomUserSerializer):
         if not request or request.user.is_anonymous:
             return False
         limit = request.query_params.get('recipes_limit')
-        recipes = obj.recipes.select_related('author').all()[:int(limit)]
+        recipes = obj.recipes.select_related('author')
+        if limit:
+            recipes = recipes[:int(limit)]
         serializer = RecipeShortInfo(recipes, many=True, read_only=True)
         return serializer.data
 
