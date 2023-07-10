@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -206,12 +207,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        recipe = data['recipe']
-        if recipe in request.user.recipes.all():
-            raise ValidationError({
-                'errors': 'Нельзя добавить в избранное свой рецепт'
-            })
-        return data
 
     def to_representation(self, instance):
         return RecipeShortInfo(instance.recipe, context={
@@ -235,10 +230,10 @@ class FollowSerializer(CustomUserSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        limit = request.query_params.get('recipes_limit')
+        limit = request.query_params.get('recipes_limit',
+                                         settings.RECIPES_LIMIT)
         recipes = obj.recipes.select_related('author')
-        if limit:
-            recipes = recipes[:int(limit)]
+        all()[:int(limit)]
         serializer = RecipeShortInfo(recipes, many=True, read_only=True)
         return serializer.data
 
