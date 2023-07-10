@@ -232,7 +232,8 @@ class FollowSerializer(CustomUserSerializer):
             return False
         limit = request.query_params.get('recipes_limit',
                                          settings.RECIPES_LIMIT)
-        recipes = obj.recipes.select_related('author')[:int(limit)]
+        recipes = obj.recipes.select_related('author')
+        all()[:int(limit)]
         serializer = RecipeShortInfo(recipes, many=True, read_only=True)
         return serializer.data
 
