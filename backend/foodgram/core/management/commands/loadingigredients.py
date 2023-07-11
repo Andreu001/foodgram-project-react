@@ -13,10 +13,10 @@ class Command(BaseCommand):
                   encoding='utf-8') as f:
             reader = csv.reader(f)
             ingredients = []
+            Ingredients.objects.bulk_create(ingredients)
             for row in reader:
                 ingredients.append(
                     Ingredients(name=row[0], measurement_unit=row[1])
                 )
-            Ingredients.objects.bulk_create(ingredients)
 
         return logging.info('Загружено')
